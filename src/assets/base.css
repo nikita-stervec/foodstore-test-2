@@ -1,0 +1,50 @@
+:root {
+  --bg-primary: #ffffff;
+  --button-bg: #f9f9f9;
+  --button-active-bg: #282828;
+}
+
+@font-face {
+  font-family: 'NotoSans';
+  src:
+    local('NotoSans Regular'),
+    local('NotoSans-Regular'),
+    url('./fonts/NotoSans-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NotoSans';
+  src:
+    local('NotoSans Medium'),
+    local('NotoSans-Medium'),
+    url('./fonts/NotoSans-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NotoSans';
+  src:
+    local('NotoSans SemiBold'),
+    local('NotoSans-SemiBold'),
+    url('./fonts/NotoSans-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-primary);
+  font-family:
+    'NotoSans',
+    -apple-system,
+    sans-serif;
+  font-weight: 400;
+}
