@@ -73,7 +73,7 @@
     </header>
   </div>
 
-  <main>
+  <main @click="closeAllDropdowns">
     <div class="content-placeholder"></div>
   </main>
 
