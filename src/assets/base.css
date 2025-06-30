@@ -47,4 +47,15 @@ body {
     -apple-system,
     sans-serif;
   font-weight: 400;
+  overflow-y: auto;
+  -ms-overflow-style: none;
+}
+
+html {
+  overflow-y: scroll;
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
 }

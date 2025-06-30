@@ -12,16 +12,12 @@
           </button>
 
           <div class="lang-wrapper" @click.stop>
-            <button class="lang-button" @click="toggleLangDropdown">
+            <button class="lang-button" @click="toggleLangDropdown" ref="langButton">
               <span class="lang-text">{{ currentLang }}</span>
             </button>
 
             <transition name="slide-down">
-              <div
-                v-if="showLangDropdown"
-                class="lang-dropdown"
-                :style="{ width: langButtonWidth + 'px' }"
-              >
+              <div v-if="showLangDropdown" class="lang-dropdown">
                 <div
                   v-for="lang in languages"
                   :key="lang"
@@ -73,10 +69,6 @@
     </header>
   </div>
 
-  <main @click="closeAllDropdowns">
-    <div class="content-placeholder"></div>
-  </main>
-
   <transition name="slide">
     <div v-if="showCartDropdown" class="cart-sidebar" @click.stop>
       <div class="cart-dropdown-content">
@@ -113,25 +105,29 @@
                 fill="currentColor"
               />
             </svg>
-            <span class="address">Витебск, улица Правды 18-1 </span>
+            <span class="address">ул. Коркыт Ата (аул. Косшы) 18/1 </span>
           </div>
 
-          <div class="cart-item">
-            <div class="item-image-container">
-              <img :src="pizza" alt="Пицца" class="item-image" />
-            </div>
-            <div class="item-contorl">
-              <div class="item-name">Филадельфия</div>
-              <div class="item-compound">
-                Фирменный томатный соус, сыр моцарелла, семга, помидоры черри, брокколи...
-              </div>
-              <div class="item-summary-block">
-                <div class="quantity-control">
-                  <button class="quantity-btn" @click="decreaseCount">-</button>
-                  <span class="quantity">{{ itemCount }}</span>
-                  <button class="quantity-btn" @click="increaseCount">+</button>
+          <div class="cart-items-container">
+            <div v-for="(item, index) in cartItems" :key="index" class="cart-item">
+              <div class="item-image-container">
+                <div class="item-image" :style="{ background: item.color }">
+                  <div class="food-icon">{{ item.icon }}</div>
                 </div>
-                <div class="item-price">{{ (13500 * itemCount).toLocaleString('ru-RU') }} ₸</div>
+              </div>
+              <div class="item-contorl">
+                <div class="item-name">{{ item.name }}</div>
+                <div class="item-compound">{{ item.description }}</div>
+                <div class="item-summary-block">
+                  <div class="quantity-control">
+                    <button class="quantity-btn" @click="decreaseItemCount(index)">-</button>
+                    <span class="quantity">{{ item.quantity }}</span>
+                    <button class="quantity-btn" @click="increaseItemCount(index)">+</button>
+                  </div>
+                  <div class="item-price">
+                    {{ (item.price * item.quantity).toLocaleString('ru-RU') }} ₸
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -166,156 +162,173 @@
   </transition>
 </template>
 
-<script>
-import pizza from '../assets/pizza.png'
+<script setup>
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import CartIcon from './icons/CartIcon.vue'
 import MenuIcon from './icons/MenuIcon.vue'
 import SearchIcon from './icons/SearchIcon.vue'
 
-export default {
-  name: 'AppHeader',
-  components: {
-    CartIcon,
-    MenuIcon,
-    SearchIcon,
+const emit = defineEmits(['toggle-cart'])
+const props = defineProps({
+  totalPrice: { type: Number, default: 14500 },
+  isCartOpen: Boolean,
+})
+
+const animatedBalance = ref(0)
+const animationStart = ref(0)
+const animationDuration = 300
+const animationFrameId = ref(null)
+const showCartDropdown = ref(false)
+const langButtonWidth = ref(50)
+const activeIcon = ref(null)
+const isAnimating = ref(false)
+const isScrolled = ref(false)
+const showLangDropdown = ref(false)
+const showSearch = ref(false)
+const searchQuery = ref('')
+const currentLang = ref('RU')
+const deliveryMethod = ref('delivery')
+const itemCount = ref(1)
+const promoCode = ref('')
+const isTotalChanging = ref(false)
+const langButton = ref(null)
+const searchInput = ref(null)
+
+const languages = ['RU', 'KZ', 'EN']
+const cartItems = ref([
+  {
+    id: 1,
+    name: 'Пепперони',
+    description: 'Острая салями, томатный соус, сыр моцарелла',
+    price: 599,
+    category: 'pizza',
+    icon: '🍕',
+    color: 'linear-gradient(135deg, #ff9a9e, #fad0c4)',
+    quantity: 1,
   },
-  data() {
-    return {
-      langButtonWidth: 50,
-      activeIcon: null,
-      cartBalance: 0,
-      cartItems: [],
-      isAnimating: false,
-      isScrolled: false,
-      showLangDropdown: false,
-      showCartDropdown: false,
-      showSearch: false,
-      searchQuery: '',
-      currentLang: 'RU',
-      languages: ['RU', 'KZ', 'EN'],
-      deliveryMethod: 'delivery',
-      itemCount: 1,
-      promoCode: '',
-      isTotalChanging: false,
-      pizza: pizza,
+  {
+    id: 4,
+    name: 'Филадельфия',
+    description: 'Лосось, сливочный сыр, огурец, рис',
+    price: 450,
+    category: 'sushi',
+    icon: '🍣',
+    color: 'linear-gradient(135deg, #d4fc79, #96e6a1)',
+    quantity: 2,
+  },
+])
+
+const formattedBalance = computed(
+  () => Math.floor(animatedBalance.value).toLocaleString('ru-RU') + ' ₸',
+)
+const cartTotalPrice = computed(() => {
+  const itemsPrice = cartItems.value.reduce((total, item) => total + item.price * item.quantity, 0)
+  const deliveryFee = deliveryMethod.value === 'delivery' ? 1000 : 0
+  return itemsPrice + deliveryFee
+})
+const totalItemsCount = computed(() =>
+  cartItems.value.reduce((total, item) => total + item.quantity, 0),
+)
+
+const startCounterAnimation = () => {
+  if (animationFrameId.value) cancelAnimationFrame(animationFrameId.value)
+
+  const startValue = animatedBalance.value
+  const endValue = props.totalPrice
+  animationStart.value = performance.now()
+
+  const animate = (timestamp) => {
+    const elapsed = timestamp - animationStart.value
+    const progress = Math.min(elapsed / animationDuration, 1)
+    animatedBalance.value = startValue + (endValue - startValue) * progress
+
+    if (progress < 1) {
+      animationFrameId.value = requestAnimationFrame(animate)
+    } else {
+      animatedBalance.value = endValue
+      animationFrameId.value = null
     }
-  },
-  computed: {
-    formattedBalance() {
-      return this.cartBalance.toLocaleString('ru-RU') + ' ₸'
-    },
-    totalPrice() {
-      const itemsPrice = 13500 * this.itemCount
-      const deliveryFee = this.deliveryMethod === 'delivery' ? 1000 : 0
-      return itemsPrice + deliveryFee
-    },
-  },
-  watch: {
-    totalPrice() {
-      this.isTotalChanging = true
-      setTimeout(() => {
-        this.isTotalChanging = false
-      }, 600)
-    },
-  },
-  mounted() {
-    window.addEventListener('scroll', this.handleScroll)
+  }
 
-    this.$nextTick(() => {
-      const button = this.$el.querySelector('.lang-button')
-      if (button) {
-        this.langButtonWidth = button.offsetWidth
-      }
-    })
-
-    setTimeout(() => {
-      this.animateBalance(0, 14500, 300)
-    }, 300)
-  },
-  beforeUnmount() {
-    window.removeEventListener('scroll', this.handleScroll)
-    if (this.animationFrame) {
-      cancelAnimationFrame(this.animationFrame)
-    }
-  },
-  methods: {
-    animateBalance(start, end, duration) {
-      const startTime = performance.now()
-      const step = (currentTime) => {
-        const elapsed = currentTime - startTime
-        const progress = Math.min(elapsed / duration, 1)
-
-        this.cartBalance = Math.floor(start + progress * (end - start))
-
-        if (progress < 1) {
-          this.animationFrame = requestAnimationFrame(step)
-        } else {
-          this.cartBalance = end
-        }
-      }
-
-      this.animationFrame = requestAnimationFrame(step)
-    },
-
-    closeOtherDropdowns(current) {
-      if (current !== 'lang') this.showLangDropdown = false
-      if (current !== 'search') this.showSearch = false
-      if (current !== 'cart') this.showCartDropdown = false
-    },
-
-    closeAllDropdowns() {
-      this.showLangDropdown = false
-      this.showCartDropdown = false
-      this.showSearch = false
-    },
-
-    setActiveIcon(iconName) {
-      this.activeIcon = this.activeIcon === iconName ? null : iconName
-    },
-
-    toggleCart(e) {
-      e.stopPropagation()
-      this.closeOtherDropdowns('cart')
-      this.showCartDropdown = !this.showCartDropdown
-    },
-
-    toggleLangDropdown(e) {
-      e.stopPropagation()
-      this.closeOtherDropdowns('lang')
-      this.showLangDropdown = !this.showLangDropdown
-    },
-
-    selectLang(lang) {
-      this.currentLang = lang
-      this.showLangDropdown = false
-    },
-
-    toggleSearch(e) {
-      e.stopPropagation()
-      this.closeOtherDropdowns('search')
-      this.showSearch = !this.showSearch
-      if (this.showSearch) {
-        this.$nextTick(() => {
-          this.$refs.searchInput.focus()
-        })
-      }
-    },
-
-    handleScroll() {
-      const currentScroll = window.scrollY
-      this.isScrolled = currentScroll > 200
-    },
-
-    increaseCount() {
-      this.itemCount++
-    },
-    decreaseCount() {
-      if (this.itemCount > 1) {
-        this.itemCount--
-      }
-    },
-  },
+  isAnimating.value = true
+  animationFrameId.value = requestAnimationFrame(animate)
+  setTimeout(() => (isAnimating.value = false), 300)
 }
+
+watch(cartTotalPrice, () => {
+  isTotalChanging.value = true
+  setTimeout(() => (isTotalChanging.value = false), 600)
+})
+watch(
+  () => props.isCartOpen,
+  (newVal) => (showCartDropdown.value = newVal),
+)
+watch(showCartDropdown, (newVal) => emit('toggle-cart', newVal))
+watch(() => props.totalPrice, startCounterAnimation)
+
+const closeDropdowns = () => {
+  showLangDropdown.value = false
+  showSearch.value = false
+}
+const closeOtherDropdowns = (current) => {
+  if (current !== 'lang') showLangDropdown.value = false
+  if (current !== 'search') showSearch.value = false
+  if (current !== 'cart') showCartDropdown.value = false
+}
+const closeAllDropdowns = () => {
+  showLangDropdown.value = false
+  showCartDropdown.value = false
+  showSearch.value = false
+}
+const setActiveIcon = (iconName) =>
+  (activeIcon.value = activeIcon.value === iconName ? null : iconName)
+const toggleCart = (e) => {
+  e.stopPropagation()
+  closeOtherDropdowns('cart')
+  showCartDropdown.value = !showCartDropdown.value
+}
+const toggleLangDropdown = (e) => {
+  e.stopPropagation()
+  closeOtherDropdowns('lang')
+  showLangDropdown.value = !showLangDropdown.value
+}
+const selectLang = (lang) => {
+  currentLang.value = lang
+  showLangDropdown.value = false
+}
+const toggleSearch = (e) => {
+  e.stopPropagation()
+  closeOtherDropdowns('search')
+  showSearch.value = !showSearch.value
+  if (showSearch.value) {
+    nextTick(() => searchInput.value.focus())
+  }
+}
+const handleScroll = () => (isScrolled.value = window.scrollY > 200)
+const increaseItemCount = (index) => cartItems.value[index].quantity++
+const decreaseItemCount = (index) => {
+  if (cartItems.value[index].quantity > 1) {
+    cartItems.value[index].quantity--
+  } else {
+    cartItems.value.splice(index, 1)
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+  startCounterAnimation()
+
+  nextTick(() => {
+    if (langButton.value) langButtonWidth.value = langButton.value.offsetWidth
+  })
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', handleScroll)
+  if (animationFrameId.value) cancelAnimationFrame(animationFrameId.value)
+})
+defineExpose({
+  closeDropdowns,
+})
 </script>
 
 <style scoped>
@@ -326,7 +339,7 @@ export default {
   --contrast-color: #0071e35d;
   --active-color: #282828;
   --text-primary: #1d1d1f;
-  --border-radius: 8px;
+  --border-radius: 10px;
   --transition-duration: 0.3s;
 }
 
@@ -334,6 +347,10 @@ export default {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  font-family:
+    'NotoSans',
+    -apple-system,
+    sans-serif;
 }
 
 .app-container {
@@ -352,9 +369,11 @@ export default {
   transition: transform 0.4s ease;
   padding: 0;
   height: 85px;
+  border-color: #eee;
 }
 
 .header.scrolled {
+  border-bottom: 1px solid #eee;
   height: 85px;
   transition: 0.4s ease;
 }
@@ -371,27 +390,10 @@ export default {
   transition: padding 0.4s ease;
 }
 
-@media (min-width: 1600px) {
-  .header-container {
-    transition: 0.4s ease;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    min-width: 1300px;
-    max-width: 1300px;
-  }
-
-  .header.scrolled .header-container {
-    transition: 0.4s ease;
-    padding: 18px 24px;
-    max-width: 100%;
-  }
-}
-
 .left-controls {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 28px;
   flex: 1;
 }
 
@@ -407,6 +409,7 @@ export default {
 }
 
 .search-box {
+  border: 1px solid #eee;
   position: absolute;
   top: 100%;
   left: 0;
@@ -414,7 +417,7 @@ export default {
   display: flex;
   width: 320px;
   background: white;
-  border-radius: 8px;
+  border-radius: 10px;
   z-index: 200;
 }
 
@@ -452,7 +455,7 @@ export default {
   border: none;
   width: 50px;
   height: 50px;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -485,13 +488,13 @@ export default {
   border: none;
   width: 50px;
   height: 50px;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all var(--transition-duration) ease;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.9rem;
 }
 
@@ -500,11 +503,13 @@ export default {
 }
 
 .lang-dropdown {
+  width: 56px;
+  border: 1px solid #eee;
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
   background: white;
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
   z-index: 200;
 }
@@ -526,11 +531,56 @@ export default {
   font-weight: 500;
 }
 
+.item-image-container {
+  width: 112px;
+  height: 112px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.item-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.food-icon {
+  font-size: 3rem;
+  opacity: 0.8;
+}
+
+.cart-items-container {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.cart-items-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cart-items-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.cart-items-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.cart-items-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
 .cart-button {
   background-color: var(--button-bg);
   border: none;
   height: 50px;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -569,25 +619,39 @@ export default {
   transition: transform 0.1s ease-out;
 }
 
+.balance {
+  font-weight: 500;
+  font-size: 16px;
+  transition: transform 0.3s ease;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes counterTick {
+  0% {
+    transform: translateY(-2px);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(2px);
+    opacity: 0.9;
+  }
+}
+
+.animating {
+  animation: counterTick 0.1s infinite;
+  color: #4caf50;
+  font-weight: 700;
+}
+
 main {
   transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   display: flex;
   justify-content: center;
   margin: 0;
-}
-
-.content-placeholder {
-  width: 100%;
-  height: 1500px;
-  background: linear-gradient(25deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb, #d4fc79);
-  background-size: 100% 400%;
-  background-position: 0% 0%;
-  transition: background-position 1.2s ease-out;
-  opacity: 0.1;
-}
-
-.content-placeholder:hover {
-  background-position: 0% 100%;
 }
 
 .cart-sidebar {
@@ -664,7 +728,7 @@ main {
 .delivery-option {
   flex: 1;
   padding: 12px 0;
-  border-radius: 8px;
+  border-radius: 10px;
   border: 1px solid #e0e0e0;
   background: white;
   font-weight: 500;
@@ -684,7 +748,7 @@ main {
   gap: 10px;
   padding: 12px 16px;
   background: #f9f9f9;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 0.95rem;
 }
 
@@ -702,7 +766,7 @@ main {
 .item-image-container {
   width: 112px;
   height: 112px;
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -732,7 +796,7 @@ main {
 .item-name {
   display: flex;
   text-align: center;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 18px;
   padding-bottom: 4px;
 }
@@ -740,6 +804,7 @@ main {
 .item-compound {
   font-size: 12px;
   text-align: center;
+  padding: 0 24px;
   color: #888888;
 }
 
@@ -815,7 +880,7 @@ main {
   transform-origin: center;
   background: linear-gradient(to right, #fff5e6, #ffebcc);
   padding: 5px 10px;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 .total-price {
@@ -855,7 +920,7 @@ main {
   background: #282828;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 600;
   font-size: 1.05rem;
   cursor: pointer;
@@ -899,6 +964,23 @@ main {
 .slide-fade-leave-to {
   opacity: 0;
   transform: translateY(-10px);
+}
+
+@media (min-width: 1600px) {
+  .header-container {
+    transition: 0.4s ease;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    min-width: 1300px;
+    max-width: 1300px;
+  }
+
+  .header.scrolled .header-container {
+    transition: 0.4s ease;
+    padding: 18px 24px;
+    max-width: 1548px;
+  }
 }
 
 @media (max-width: 1139px) {

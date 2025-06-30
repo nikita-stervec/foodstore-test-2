@@ -1,11 +1,11 @@
 <template>
   <div id="app">
-    <AppHeader />
+    <FoodPage />
   </div>
 </template>
 
 <script setup lang="ts">
-import AppHeader from './components/AppHeader.vue'
+import FoodPage from './components/FoodPage.vue'
 </script>
 
 <style scoped></style>
