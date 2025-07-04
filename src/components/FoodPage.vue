@@ -6,59 +6,66 @@
       :isCartOpen="isCartOpen"
       @toggle-cart="toggleCart"
     />
-
-    <div class="page-container" :class="{ 'cart-open': isCartOpen }">
-      <div class="food-content">
-        <header class="page-header">
-          <div class="header-content">
-            <h1>
-              🍕 ПИЦЦА & СУШИ 🍣
-              <div class="highlight">Доставка за 60 минут</div>
-            </h1>
-            <p class="slogan">Блюда от шеф-повара прямо к вашему столу</p>
+    <div class="content-wrapper">
+      <transition name="slide">
+        <div class="page-container" :class="{ 'cart-open': isCartOpen }">
+          <div class="food-content">
+            <header class="page-header">
+              <div class="header-content">
+                <h1>
+                  🍕 ПИЦЦА & СУШИ 🍣
+                  <div class="highlight">Доставка за 60 минут</div>
+                </h1>
+                <p class="slogan">Блюда от шеф-повара прямо к вашему столу</p>
+              </div>
+            </header>
           </div>
-        </header>
-      </div>
 
-      <section class="food-categories">
-        <button
-          v-for="category in categories"
-          :key="category.id"
-          class="category-btn"
-          :class="{ active: activeCategory === category.id }"
-          @click="setActiveCategory(category.id)"
-        >
-          <span class="icon">{{ category.icon }}</span>
-          {{ category.name }}
-        </button>
-      </section>
+          <section class="food-categories">
+            <button
+              v-for="category in categories"
+              :key="category.id"
+              class="category-btn"
+              :class="{
+                active: activeCategory === category.id,
+                pressed: pressedCategory === category.id,
+              }"
+              @mousedown="pressedCategory = category.id"
+              @mouseup="pressedCategory = null"
+              @mouseleave="pressedCategory = null"
+              @click="setActiveCategory(category.id)"
+            >
+              <span class="icon">{{ category.icon }}</span>
+              {{ category.name }}
+            </button>
+          </section>
 
-      <transition name="fade" mode="out-in">
-        <div class="food-list" :key="activeCategory">
-          <div v-for="item in filteredFood" :key="item.id" class="food-card">
-            <div class="food-image" :style="{ background: item.color }">
-              <div class="image-placeholder">{{ item.icon }}</div>
+          <transition-group name="food-list" tag="div" class="food-list">
+            <div v-for="item in filteredFood" :key="item.id" class="food-card">
+              <div class="food-image" :style="{ background: item.color }">
+                <div class="image-placeholder">{{ item.icon }}</div>
+              </div>
+              <div class="food-info">
+                <h3>{{ item.name }}</h3>
+                <p class="description">{{ item.description }}</p>
+                <div class="price-add">
+                  <span class="price">{{ item.price }} ₸</span>
+                </div>
+              </div>
             </div>
-            <div class="food-info">
-              <h3>{{ item.name }}</h3>
-              <p class="description">{{ item.description }}</p>
-              <div class="price-add">
-                <span class="price">{{ item.price }} ₸</span>
+          </transition-group>
+
+          <div class="promo-banner">
+            <div class="promo-content">
+              <div class="promo-icon">🎉</div>
+              <div class="promo-text">
+                <h3>АКЦИЯ! Закажите 2 пиццы и получите роллы в подарок</h3>
+                <p>Только до конца месяца</p>
               </div>
             </div>
           </div>
         </div>
       </transition>
-
-      <div class="promo-banner">
-        <div class="promo-content">
-          <div class="promo-icon">🎉</div>
-          <div class="promo-text">
-            <h3>АКЦИЯ! Закажите 2 пиццы и получите роллы в подарок</h3>
-            <p>Только до конца месяца</p>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -215,6 +222,7 @@ const foodItems = ref([
 ])
 
 const activeCategory = ref('all')
+const pressedCategory = ref(null)
 const isCartOpen = ref(false)
 const headerRef = ref(null)
 
@@ -238,6 +246,10 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
 </script>
 
 <style scoped>
+* {
+  transition: 0.3s ease;
+}
+
 .food-content {
   padding: 20px 0;
   font-family:
@@ -259,39 +271,11 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
   box-shadow: 0 4px 20px rgba(255, 154, 158, 0.3);
   color: #fff;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.category-btn {
-  transition:
-    all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55),
-    transform 0.2s ease;
-}
-
-.food-card {
   transition: transform 0.3s ease;
-  animation: appear 0.4s ease forwards;
-  opacity: 0;
-  transform: translateY(10px);
 }
 
-@keyframes appear {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.page-header:hover {
+  transform: translateY(-3px);
 }
 
 .header-content {
@@ -306,6 +290,11 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   margin: 0;
   font-size: 2.2rem;
   font-weight: 800;
+  transition: transform 0.3s ease;
+}
+
+.header-content h1:hover {
+  transform: scale(1.02);
 }
 
 .highlight {
@@ -314,6 +303,27 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   border-radius: 8px;
   font-size: 1.8rem;
   font-weight: 800;
+  transition: transform 0.2s ease;
+}
+
+.highlight:hover {
+  transform: scale(1.05);
+}
+
+.cart-sidebar {
+  position: fixed;
+  top: 85px;
+  right: 0;
+  width: 375px;
+  height: calc(100vh - 85px);
+  background-color: white;
+  z-index: 999;
+  overflow-y: auto;
+  border-left: 1px solid #eee;
+}
+
+.page-container.cart-open + .cart-sidebar {
+  transform: translateX(0);
 }
 
 .slogan {
@@ -327,40 +337,16 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   max-width: 1200px;
   padding: 20px;
   margin: 0 auto;
-  transition: padding-right 0.4s ease;
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .page-container.cart-open {
-  padding-right: 250px;
-}
-
-.cart-summary {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 12px 20px;
-  border-radius: 15px;
-  backdrop-filter: blur(5px);
-}
-
-.cart-icon {
-  font-size: 2rem;
-}
-
-.cart-info {
-  text-align: right;
-}
-
-.items-count {
-  font-weight: 600;
-  font-size: 1.1rem;
-}
-
-.total-price {
-  font-weight: 700;
-  font-size: 1.4rem;
-  color: #2e2e2e;
+  transform: scale(0.98);
+  padding-right: 375px; /* Место для корзины */
+  opacity: 0.9;
+  transition:
+    transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+    opacity 0.3s ease;
 }
 
 .food-categories {
@@ -371,31 +357,55 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   justify-content: center;
 }
 
+.content-wrapper {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
 .category-btn {
   padding: 12px 20px;
   border: none;
   border-radius: 12px;
   background: #f8f9fa;
   cursor: pointer;
-  transition: all 0.3s;
   display: flex;
   align-items: center;
   gap: 8px;
   font-weight: 600;
   font-size: 1.05rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition:
+    all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55),
+    transform 0.1s ease;
+}
+
+.category-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .category-btn.active,
-.category-btn:hover {
+.category-btn.active:hover {
   background: #ff7043;
   color: white;
   transform: translateY(-3px);
   box-shadow: 0 5px 15px rgba(255, 112, 67, 0.4);
 }
 
+.category-btn.pressed {
+  transform: scale(0.95) translateY(-1px);
+  opacity: 0.9;
+}
+
 .icon {
   font-size: 1.4rem;
+  transition: transform 0.2s ease;
+}
+
+.category-btn:hover .icon {
+  transform: scale(1.1);
 }
 
 .food-list {
@@ -409,16 +419,20 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   border: 1px solid #eee;
   border-radius: 16px;
   overflow: hidden;
-  transition: 0.3s ease;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
   background: white;
-  transform: scale(0.95);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    opacity 0.3s ease;
+  transform: scale(0.98);
+  opacity: 0.95;
 }
 
 .food-card:hover {
-  transition: 0.3s ease;
-  transform: translateY(-8px);
+  transform: translateY(-8px) scale(1.01);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  opacity: 1;
 }
 
 .food-image {
@@ -426,11 +440,21 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.food-card:hover .food-image {
+  transform: scale(1.03);
 }
 
 .image-placeholder {
   font-size: 5rem;
   opacity: 0.8;
+  transition: transform 0.3s ease;
+}
+
+.food-card:hover .image-placeholder {
+  transform: scale(1.1);
 }
 
 .food-info {
@@ -442,6 +466,11 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   margin-bottom: 12px;
   color: #333;
   font-size: 1.4rem;
+  transition: color 0.2s ease;
+}
+
+.food-card:hover h3 {
+  color: #e53935;
 }
 
 .description {
@@ -450,6 +479,11 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   min-height: 60px;
   margin-bottom: 20px;
   line-height: 1.5;
+  transition: color 0.2s ease;
+}
+
+.food-card:hover .description {
+  color: #444;
 }
 
 .price-add {
@@ -462,33 +496,11 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   font-weight: bold;
   font-size: 1.4rem;
   color: #e53935;
+  transition: transform 0.2s ease;
 }
 
-.add-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.quantity-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid #ddd;
-  background: white;
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.quantity-btn:hover {
-  background: #f0f0f0;
-}
-
-.quantity {
-  min-width: 30px;
-  text-align: center;
-  font-weight: 600;
+.food-card:hover .price {
+  transform: scale(1.05);
 }
 
 .promo-banner {
@@ -498,6 +510,11 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   margin-top: 30px;
   color: white;
   box-shadow: 0 4px 20px rgba(94, 231, 223, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.promo-banner:hover {
+  transform: translateY(-5px);
 }
 
 .promo-content {
@@ -508,17 +525,58 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
 
 .promo-icon {
   font-size: 3.5rem;
+  transition: transform 0.3s ease;
+}
+
+.promo-banner:hover .promo-icon {
+  transform: scale(1.1);
 }
 
 .promo-text h3 {
   margin: 0 0 8px 0;
   font-size: 1.6rem;
+  transition: transform 0.2s ease;
+}
+
+.promo-banner:hover h3 {
+  transform: translateX(3px);
 }
 
 .promo-text p {
   margin: 0;
   font-size: 1.1rem;
   opacity: 0.9;
+}
+
+/* Food list animations */
+.food-list-move,
+.food-list-enter-active,
+.food-list-leave-active {
+  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+.food-list-enter-from,
+.food-list-leave-to {
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+}
+
+.food-list-leave-active {
+  position: absolute;
+}
+
+@media (max-width: 1500px) {
+  .page-container.cart-open {
+    transform: none;
+    padding-right: 0;
+    filter: none;
+    opacity: 1;
+  }
+
+  .cart-sidebar {
+    z-index: 1001; /* Поверх контента */
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
+  }
 }
 
 @media (max-width: 768px) {
@@ -529,7 +587,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   .cart-open .food-content {
     transform: scale(1);
     opacity: 0.7;
-    filter: blur(2px);
   }
 }
 
