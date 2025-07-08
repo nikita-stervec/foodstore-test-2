@@ -130,6 +130,16 @@ watch(cartTotalPrice, () => {
 </script>
 
 <style scoped>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family:
+    'NotoSans',
+    -apple-system,
+    sans-serif;
+}
+
 .cart-sidebar {
   margin-top: 85px;
   position: fixed;
@@ -141,23 +151,6 @@ watch(cartTotalPrice, () => {
   background: white;
   z-index: 99;
   overflow-y: auto;
-}
-
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.slide-enter-from {
-  transform: translateX(100%);
-}
-
-.slide-enter-to {
-  transform: translateX(0);
-}
-
-.slide-leave-active {
-  transform: translateX(100%);
 }
 
 .cart-dropdown-content {
@@ -410,6 +403,10 @@ watch(cartTotalPrice, () => {
   background: #1d1d1f;
 }
 
+.total-price.changing {
+  animation: highlightTotal 0.6s ease;
+}
+
 @keyframes highlightTotal {
   0% {
     transform: scale(1);
@@ -423,32 +420,5 @@ watch(cartTotalPrice, () => {
     transform: scale(1);
     color: #000;
   }
-}
-
-/* Адаптация для мобильных устройств */
-@media (max-width: 1200px) {
-  .page-container.cart-open {
-    transform: none;
-  }
-
-  .cart-animation-container {
-    width: 100%;
-    left: 0;
-    top: 100%;
-    animation-name: slide-up;
-  }
-
-  @keyframes slide-up {
-    from {
-      transform: translateY(0);
-    }
-    to {
-      transform: translateY(-100%);
-    }
-  }
-}
-
-.total-price.changing {
-  animation: highlightTotal 0.6s ease;
 }
 </style>

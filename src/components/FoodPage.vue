@@ -293,6 +293,12 @@ const filteredFood = computed(() =>
 
 const setActiveCategory = (id) => (activeCategory.value = id)
 
+const handlePageClick = (event) => {
+  if (headerRef.value?.closeDropdowns) {
+    headerRef.value.closeDropdowns()
+  }
+}
+
 onMounted(() => document.addEventListener('click', handlePageClick))
 onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
 </script>
@@ -301,6 +307,37 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
 * {
   transition: 0.3s ease;
   box-sizing: border-box;
+}
+
+.content-wrapper {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 0;
+}
+
+.page-container {
+  flex: 1;
+  transition:
+    transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+    padding 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  max-width: 1200px;
+  padding: 20px;
+  margin: 0 auto;
+}
+
+.page-container.cart-open {
+  transform: translateX(-15%);
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateX(100%);
 }
 
 .food-content {
@@ -360,61 +397,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
 
 .highlight:hover {
   transform: scale(1.05);
-}
-
-.content-wrapper {
-  position: relative;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 0;
-}
-
-.page-container {
-  flex: 1;
-  transition:
-    transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
-    padding 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-  max-width: 1200px;
-  padding: 20px;
-  margin: 0 auto;
-}
-
-.page-container.cart-open {
-  transform: translateX(-15%);
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateX(100%);
-}
-
-.cart-container {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 25%;
-  height: 100%;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.cart-container.open {
-  pointer-events: auto;
 }
 
 .slogan {

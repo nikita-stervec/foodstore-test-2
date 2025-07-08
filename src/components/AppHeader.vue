@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container" :class="{ 'cart-open': showCartDropdown }" @click="closeAllDropdowns">
+  <div class="app-container" :class="{ 'cart-open': isCartOpen }" @click="closeAllDropdowns">
     <header class="header" :class="{ scrolled: isScrolled }">
       <div class="header-container">
         <div class="left-controls">
@@ -223,6 +223,54 @@ defineExpose({
     sans-serif;
 }
 
+@keyframes counterTick {
+  0% {
+    transform: translateY(-2px);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(2px);
+    opacity: 0.9;
+  }
+}
+
+@keyframes spread-left {
+  0% {
+    transform: translateX(0);
+  }
+  60% {
+    transform: translateX(calc(-1 * var(--spread-distance) * 1.1));
+  }
+  100% {
+    transform: translateX(calc(-1 * var(--spread-distance)));
+  }
+}
+
+@keyframes spread-right {
+  0% {
+    transform: translateX(0);
+  }
+  60% {
+    transform: translateX(calc(var(--spread-distance) * 1.1));
+  }
+  100% {
+    transform: translateX(var(--spread-distance));
+  }
+}
+
+@keyframes return-smooth {
+  0% {
+    transform: translateX(var(--current-distance));
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
 .app-container {
   position: relative;
   overflow-x: hidden;
@@ -288,7 +336,7 @@ defineExpose({
   width: 320px;
   background: white;
   border-radius: 10px;
-  z-index: 200;
+  z-index: 300;
 }
 
 .search-box input {
@@ -401,51 +449,6 @@ defineExpose({
   font-weight: 500;
 }
 
-.item-image-container {
-  width: 112px;
-  height: 112px;
-  border-radius: 10px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.item-image {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.food-icon {
-  font-size: 3rem;
-  opacity: 0.8;
-}
-
-.cart-items-container {
-  max-height: 400px;
-  overflow-y: auto;
-  padding-right: 8px;
-}
-
-.cart-items-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.cart-items-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.cart-items-container::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 10px;
-}
-
-.cart-items-container::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
 .cart-button {
   background-color: var(--button-bg);
   border: none;
@@ -486,316 +489,14 @@ defineExpose({
 .balance {
   font-weight: 500;
   font-size: 16px;
-  transition: transform 0.1s ease-out;
-}
-
-.balance {
-  font-weight: 500;
-  font-size: 16px;
   transition: transform 0.3s ease;
   font-variant-numeric: tabular-nums;
-}
-
-@keyframes counterTick {
-  0% {
-    transform: translateY(-2px);
-    opacity: 0.8;
-  }
-  50% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(2px);
-    opacity: 0.9;
-  }
 }
 
 .animating {
   animation: counterTick 0.1s infinite;
   color: #4caf50;
   font-weight: 700;
-}
-
-main {
-  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-  display: flex;
-  justify-content: center;
-  margin: 0;
-}
-
-.cart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 20px;
-}
-
-.cart-header h3 {
-  font-weight: 600;
-}
-
-.close-cart {
-  background: none;
-  border: none;
-  cursor: pointer;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.2s;
-}
-
-.close-cart:hover {
-  background-color: #f5f5f5;
-}
-
-.empty-cart {
-  padding: 24px 0;
-  text-align: center;
-  color: #888;
-}
-
-.empty-cart svg {
-  margin-bottom: 16px;
-  color: #ccc;
-}
-
-.empty-cart p {
-  font-size: 1.1rem;
-  font-weight: 500;
-}
-
-.cart-content {
-  padding: 0 20px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.delivery-options {
-  display: flex;
-  gap: 10px;
-  margin-top: 4px;
-}
-
-.delivery-option {
-  flex: 1;
-  padding: 12px 0;
-  border-radius: 10px;
-  border: 1px solid #e0e0e0;
-  background: white;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.delivery-option.active {
-  background: #f5f5f7;
-  border-color: var(--contrast-color);
-  color: #000;
-}
-
-.address-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  background: #f9f9f9;
-  border-radius: 10px;
-  font-size: 0.95rem;
-}
-
-.location-icon {
-  flex-shrink: 0;
-  color: #666;
-}
-
-.cart-item {
-  padding: 16px 0;
-  display: flex;
-  flex-direction: row;
-}
-
-.item-image-container {
-  width: 112px;
-  height: 112px;
-  border-radius: 10px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.item-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.item-contorl {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.item-summary-block {
-  gap: 30px;
-  display: flex;
-  flex-direction: row-reverse;
-  justify-content: center;
-  align-items: center;
-}
-
-.item-name {
-  display: flex;
-  text-align: center;
-  font-weight: 600;
-  font-size: 18px;
-  padding-bottom: 4px;
-}
-
-.item-compound {
-  font-size: 12px;
-  text-align: center;
-  padding: 0 24px;
-  color: #888888;
-}
-
-.item-price {
-  font-size: 14px;
-  font-weight: 700;
-  color: #1d1d1f;
-}
-
-.quantity-control {
-  display: flex;
-  align-items: center;
-}
-
-.quantity-btn {
-  width: 24px;
-  height: 24px;
-  border-radius: 50;
-  border: 0px solid #e0e0e0;
-  background: white;
-  font-size: 1.2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.quantity {
-  min-width: 30px;
-  text-align: center;
-  font-weight: 500;
-}
-
-.promo-input {
-  width: 100%;
-  border: 0px;
-  font-size: 1rem;
-}
-
-.promo-input:focus {
-  outline: none;
-}
-
-.order-summary {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.summary-row {
-  display: flex;
-  justify-content: space-between;
-}
-
-.summary-row.total {
-  position: relative;
-  z-index: 1;
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px dashed #ccc;
-}
-
-.total-text {
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.total-price {
-  transition: 0.3s ease;
-  display: inline-block;
-  transform: rotate(0deg);
-  transform-origin: center;
-  background: linear-gradient(to right, #fff5e6, #ffebcc);
-  padding: 5px 10px;
-  border-radius: 10px;
-}
-
-.total-price {
-  background: linear-gradient(to left, #fff5e6, #ffebcc);
-}
-
-@keyframes highlightTotal {
-  0% {
-    transition: 0.3s ease;
-    transform: rotate(3deg) scale(1);
-  }
-  50% {
-    transition: 0.3s ease;
-    transform: rotate(3deg) scale(1.1);
-  }
-  100% {
-    transition: 0.3s ease;
-    transform: rotate(3deg) scale(1);
-  }
-}
-
-.total-price {
-  transition: all 0.3s ease;
-}
-
-.total-price.changing {
-  animation: highlightTotal 0.6s ease;
-}
-
-.order-quantity {
-  color: #acacac;
-}
-
-.order-button {
-  width: 100%;
-  padding: 16px;
-  background: #282828;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 1.05rem;
-  cursor: pointer;
-  transition: background 0.2s;
-  margin-top: 10px;
-}
-
-.order-button:hover {
-  background: #1d1d1f;
-}
-
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateX(100%);
 }
 
 .slide-down-enter-active,
@@ -820,6 +521,35 @@ main {
 .slide-fade-leave-to {
   opacity: 0;
   transform: translateY(-10px);
+}
+
+.app-container.cart-open .left-controls {
+  justify-content: flex-start;
+  animation: spread-left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  --spread-distance: 30px;
+}
+
+.app-container.cart-open .right-controls {
+  justify-content: flex-end;
+  animation: spread-right 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  --spread-distance: 30px;
+}
+
+.app-container.cart-open .search-box {
+  display: flex !important;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.app-container.cart-open .search-button {
+  display: flex !important;
+  opacity: 1;
+  transform: scale(1);
+}
+
+.app-container:not(.cart-open) .left-controls,
+.app-container:not(.cart-open) .right-controls {
+  animation: return-smooth 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @media (min-width: 1600px) {
@@ -859,103 +589,33 @@ main {
   .balance {
     font-size: 0.85rem;
   }
+}
 
-  main {
-    margin-top: 76px;
+@media (min-width: 1249px) and (max-width: 1599px) {
+  .app-container.cart-open .left-controls,
+  .app-container.cart-open .right-controls {
+    transition:
+      transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+      opacity 0.4s ease;
+  }
+
+  .app-container:not(.cart-open) .left-controls,
+  .app-container:not(.cart-open) .right-controls {
+    transition:
+      transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.5s ease;
   }
 }
 
-@media (max-width: 768px) {
-  .header-container {
-    padding: 0 16px;
+@media (min-width: 1139px) and (max-width: 1249px) {
+  .app-container.cart-open .left-controls,
+  .app-container.cart-open .right-controls {
+    animation: none;
   }
 
-  .left-controls {
-    gap: 16px;
-  }
-
-  .lang-wrapper {
-    display: none;
-  }
-
-  .nav-button,
-  .lang-button,
-  .search-button {
-    width: 44px;
-    height: 44px;
-  }
-
-  .cart-button {
-    height: 40px;
-  }
-
-  .balance {
-    display: none;
-  }
-
-  .search-box {
-    width: 280px;
-    right: 0;
-    left: auto;
-  }
-
-  main {
-    margin-top: 72px;
-    padding: 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .header-container {
-    padding: 12px 20px;
-  }
-
-  .left-controls {
-    gap: 12px;
-  }
-
-  .search-button {
-    display: none;
-  }
-
-  .cart-sidebar {
-    width: 100%;
-  }
-
-  .cart-open .header,
-  .cart-open main {
-    transform: none;
-  }
-
-  .nav-button,
-  .lang-button,
-  .search-button {
-    width: 36px;
-    height: 36px;
-  }
-
-  .cart-button {
-    height: 36px;
-  }
-
-  main {
-    margin-top: 60px;
-    padding: 12px;
-  }
-}
-
-@media (max-width: 360px) {
-  .header-container {
-    padding: 10px 12px;
-  }
-
-  .nav-button {
-    width: 34px;
-    height: 34px;
-  }
-
-  .cart-button {
-    padding: 0 8px;
+  .app-container:not(.cart-open) .left-controls,
+  .app-container:not(.cart-open) .right-controls {
+    animation: none;
   }
 }
 </style>
