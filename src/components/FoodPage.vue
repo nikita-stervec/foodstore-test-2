@@ -7,63 +7,65 @@
       @toggle-cart="toggleCart"
     />
     <div class="content-wrapper">
-      <div class="page-container" :class="{ 'cart-open': isCartOpen }">
-        <div class="food-content">
-          <header class="page-header">
-            <div class="header-content">
-              <h1>
-                🍕 ПИЦЦА & СУШИ 🍣
-                <div class="highlight">Доставка за 60 минут</div>
-              </h1>
-              <p class="slogan">Блюда от шеф-повара прямо к вашему столу</p>
-            </div>
-          </header>
-        </div>
+      <transition name="slide">
+        <div class="page-container" :class="{ 'cart-open': isCartOpen }">
+          <div class="food-content">
+            <header class="page-header">
+              <div class="header-content">
+                <h1>
+                  🍕 ПИЦЦА & СУШИ 🍣
+                  <div class="highlight">Доставка за 60 минут</div>
+                </h1>
+                <p class="slogan">Блюда от шеф-повара прямо к вашему столу</p>
+              </div>
+            </header>
+          </div>
 
-        <section class="food-categories">
-          <button
-            v-for="category in categories"
-            :key="category.id"
-            class="category-btn"
-            :class="{
-              active: activeCategory === category.id,
-              pressed: pressedCategory === category.id,
-            }"
-            @mousedown="pressedCategory = category.id"
-            @mouseup="pressedCategory = null"
-            @mouseleave="pressedCategory = null"
-            @click="setActiveCategory(category.id)"
-          >
-            <span class="icon">{{ category.icon }}</span>
-            {{ category.name }}
-          </button>
-        </section>
+          <section class="food-categories">
+            <button
+              v-for="category in categories"
+              :key="category.id"
+              class="category-btn"
+              :class="{
+                active: activeCategory === category.id,
+                pressed: pressedCategory === category.id,
+              }"
+              @mousedown="pressedCategory = category.id"
+              @mouseup="pressedCategory = null"
+              @mouseleave="pressedCategory = null"
+              @click="setActiveCategory(category.id)"
+            >
+              <span class="icon">{{ category.icon }}</span>
+              {{ category.name }}
+            </button>
+          </section>
 
-        <transition-group name="food-list" tag="div" class="food-list">
-          <div v-for="item in filteredFood" :key="item.id" class="food-card">
-            <div class="food-image" :style="{ background: item.color }">
-              <div class="image-placeholder">{{ item.icon }}</div>
+          <transition-group name="food-list" tag="div" class="food-list">
+            <div v-for="item in filteredFood" :key="item.id" class="food-card">
+              <div class="food-image" :style="{ background: item.color }">
+                <div class="image-placeholder">{{ item.icon }}</div>
+              </div>
+              <div class="food-info">
+                <h3>{{ item.name }}</h3>
+                <p class="description">{{ item.description }}</p>
+                <div class="price-add">
+                  <span class="price">{{ item.price }} ₸</span>
+                </div>
+              </div>
             </div>
-            <div class="food-info">
-              <h3>{{ item.name }}</h3>
-              <p class="description">{{ item.description }}</p>
-              <div class="price-add">
-                <span class="price">{{ item.price }} ₸</span>
+          </transition-group>
+
+          <div class="promo-banner">
+            <div class="promo-content">
+              <div class="promo-icon">🎉</div>
+              <div class="promo-text">
+                <h3>АКЦИЯ! Закажите 2 пиццы и получите роллы в подарок</h3>
+                <p>Только до конца месяца</p>
               </div>
             </div>
           </div>
-        </transition-group>
-
-        <div class="promo-banner">
-          <div class="promo-content">
-            <div class="promo-icon">🎉</div>
-            <div class="promo-text">
-              <h3>АКЦИЯ! Закажите 2 пиццы и получите роллы в подарок</h3>
-              <p>Только до конца месяца</p>
-            </div>
-          </div>
-        </div>
-      </div>
+        </div></transition
+      >
       <div
         class="cart-animation-container"
         :class="{ open: isCartOpen, closing: isClosing }"
@@ -298,6 +300,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
 <style scoped>
 * {
   transition: 0.3s ease;
+  box-sizing: border-box;
 }
 
 .food-content {
@@ -363,19 +366,21 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   position: relative;
   max-width: 1200px;
   margin: 0 auto;
-  display: flex;
+  padding: 0 0;
 }
 
 .page-container {
   flex: 1;
-  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  transition:
+    transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+    padding 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   max-width: 1200px;
   padding: 20px;
   margin: 0 auto;
 }
 
 .page-container.cart-open {
-  transform: translateX(-10%);
+  transform: translateX(-15%);
 }
 
 .fade-enter-active,
@@ -469,46 +474,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
 
 .category-btn:hover .icon {
   transform: scale(1.1);
-}
-
-.cart-animation-container {
-  position: absolute;
-  top: 0;
-  left: 100%;
-  width: 25%;
-  height: 100%;
-  z-index: 99;
-}
-
-.cart-animation-container.open {
-  animation: slide-in 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-}
-
-.cart-animation-container.closing {
-  animation: slide-out 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-}
-
-@keyframes slide-in {
-  0% {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes slide-out {
-  0% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-100%);
-  }
 }
 
 .food-list {
@@ -667,26 +632,130 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   position: absolute;
 }
 
-@media (max-width: 1200px) {
-  .page-container.cart-open {
-    transform: none;
+.cart-animation-container {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  width: 25%;
+  height: 100%;
+  z-index: 99;
+}
+
+.cart-animation-container.open {
+  animation: slide-in 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.cart-animation-container.closing {
+  animation: slide-out 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+@keyframes slide-in {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
   }
 
-  .cart-container {
-    width: 100%;
-  }
-
-  .slide-enter-from,
-  .slide-leave-to {
-    transform: translateY(100%);
+  100% {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
-@media (max-width: 1500px) {
+@keyframes slide-out {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+}
+
+@media (min-width: 3300px) {
   .page-container.cart-open {
-    transform: none;
-    width: auto;
-    padding-right: 0;
+    transform: translateX(-8%);
+  }
+}
+
+@media (min-width: 2560px) and (max-width: 3299px) {
+  .page-container.cart-open {
+    transform: translateX(-8%);
+  }
+}
+
+@media (min-width: 1920px) and (max-width: 2559px) {
+  .page-container.cart-open {
+    transform: translateX(-8%);
+    padding: auto 0;
+  }
+}
+
+@media (min-width: 1600px) and (max-width: 1919px) {
+  .page-container.cart-open {
+    transform: translateX(-16%);
+  }
+  .cart-animation-container {
+    width: 15%;
+  }
+}
+
+@media (min-width: 1500px) and (max-width: 1599px) {
+  .page-container.cart-open {
+    padding-left: calc(8% + 20px);
+    padding-right: calc(8% + 20px);
+    transform: translateX(-17%);
+  }
+  .cart-animation-container {
+    width: 10%;
+  }
+}
+
+@media (min-width: 1400px) and (max-width: 1499px) {
+  .page-container.cart-open {
+    padding-left: calc(14% + 20px);
+    padding-right: calc(14% + 20px);
+    transform: translateX(-15%);
+  }
+  .cart-animation-container {
+    width: 4%;
+  }
+}
+
+@media (min-width: 1300px) and (max-width: 1399px) {
+  .page-container.cart-open {
+    padding-left: calc(13% + 20px);
+    padding-right: calc(13% + 20px);
+  }
+  .cart-animation-container {
+    width: 4%;
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1299px) {
+  .page-container.cart-open {
+    padding-left: calc(17% + 20px);
+    padding-right: calc(17% + 20px);
+  }
+  .cart-animation-container {
+    width: 0;
+  }
+}
+
+@media (min-width: 1140px) and (max-width: 1199px) {
+  .page-container.cart-open {
+    padding-left: calc(15% + 20px);
+    padding-right: calc(18% + 20px);
+  }
+  .cart-animation-container {
+    width: 0;
+  }
+}
+
+@media (max-width: 1200px) {
+  .slide-enter-from,
+  .slide-leave-to {
+    transform: translateY(100%);
   }
 }
 
@@ -696,16 +765,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   }
 }
 
-@media (max-width: 1480px) {
-  .page-container.cart-open {
-    padding-right: 0;
-  }
-}
-
 @media (max-width: 1400px) {
-  .page-container.cart-open {
-    padding-right: 0;
-  }
   .header-content h1 {
     font-size: 1.9rem;
     font-weight: 700;
@@ -723,9 +783,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
 }
 
 @media (max-width: 1200px) {
-  .page-container.cart-open {
-    padding-right: 0;
-  }
   .header-content h1 {
     font-size: 1.7rem;
     font-weight: 700;
@@ -746,7 +803,8 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   .page-container {
     transition:
       transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
-      width 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+      width 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+      padding 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   }
 }
 
