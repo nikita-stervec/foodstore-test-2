@@ -7,72 +7,78 @@
       @toggle-cart="toggleCart"
     />
     <div class="content-wrapper">
-      <transition name="slide">
-        <div class="page-container" :class="{ 'cart-open': isCartOpen }">
-          <div class="food-content">
-            <header class="page-header">
-              <div class="header-content">
-                <h1>
-                  🍕 ПИЦЦА & СУШИ 🍣
-                  <div class="highlight">Доставка за 60 минут</div>
-                </h1>
-                <p class="slogan">Блюда от шеф-повара прямо к вашему столу</p>
-              </div>
-            </header>
-          </div>
+      <div class="page-container" :class="{ 'cart-open': isCartOpen }">
+        <div class="food-content">
+          <header class="page-header">
+            <div class="header-content">
+              <h1>
+                🍕 ПИЦЦА & СУШИ 🍣
+                <div class="highlight">Доставка за 60 минут</div>
+              </h1>
+              <p class="slogan">Блюда от шеф-повара прямо к вашему столу</p>
+            </div>
+          </header>
+        </div>
 
-          <section class="food-categories">
-            <button
-              v-for="category in categories"
-              :key="category.id"
-              class="category-btn"
-              :class="{
-                active: activeCategory === category.id,
-                pressed: pressedCategory === category.id,
-              }"
-              @mousedown="pressedCategory = category.id"
-              @mouseup="pressedCategory = null"
-              @mouseleave="pressedCategory = null"
-              @click="setActiveCategory(category.id)"
-            >
-              <span class="icon">{{ category.icon }}</span>
-              {{ category.name }}
-            </button>
-          </section>
+        <section class="food-categories">
+          <button
+            v-for="category in categories"
+            :key="category.id"
+            class="category-btn"
+            :class="{
+              active: activeCategory === category.id,
+              pressed: pressedCategory === category.id,
+            }"
+            @mousedown="pressedCategory = category.id"
+            @mouseup="pressedCategory = null"
+            @mouseleave="pressedCategory = null"
+            @click="setActiveCategory(category.id)"
+          >
+            <span class="icon">{{ category.icon }}</span>
+            {{ category.name }}
+          </button>
+        </section>
 
-          <transition-group name="food-list" tag="div" class="food-list">
-            <div v-for="item in filteredFood" :key="item.id" class="food-card">
-              <div class="food-image" :style="{ background: item.color }">
-                <div class="image-placeholder">{{ item.icon }}</div>
-              </div>
-              <div class="food-info">
-                <h3>{{ item.name }}</h3>
-                <p class="description">{{ item.description }}</p>
-                <div class="price-add">
-                  <span class="price">{{ item.price }} ₸</span>
-                </div>
+        <transition-group name="food-list" tag="div" class="food-list">
+          <div v-for="item in filteredFood" :key="item.id" class="food-card">
+            <div class="food-image" :style="{ background: item.color }">
+              <div class="image-placeholder">{{ item.icon }}</div>
+            </div>
+            <div class="food-info">
+              <h3>{{ item.name }}</h3>
+              <p class="description">{{ item.description }}</p>
+              <div class="price-add">
+                <span class="price">{{ item.price }} ₸</span>
               </div>
             </div>
-          </transition-group>
+          </div>
+        </transition-group>
 
-          <div class="promo-banner">
-            <div class="promo-content">
-              <div class="promo-icon">🎉</div>
-              <div class="promo-text">
-                <h3>АКЦИЯ! Закажите 2 пиццы и получите роллы в подарок</h3>
-                <p>Только до конца месяца</p>
-              </div>
+        <div class="promo-banner">
+          <div class="promo-content">
+            <div class="promo-icon">🎉</div>
+            <div class="promo-text">
+              <h3>АКЦИЯ! Закажите 2 пиццы и получите роллы в подарок</h3>
+              <p>Только до конца месяца</p>
             </div>
           </div>
         </div>
-      </transition>
+      </div>
+      <div
+        class="cart-animation-container"
+        :class="{ open: isCartOpen, closing: isClosing }"
+        ref="cartContainer"
+      >
+        <CartSidebar :show="isCartOpen" :cartItems="cartItems" @close="startCloseAnimation" />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import AppHeader from './AppHeader.vue'
+import CartSidebar from './CartSidebar.vue'
 
 const categories = ref([
   { id: 'all', name: 'Все', icon: '🍽️' },
@@ -81,6 +87,29 @@ const categories = ref([
   { id: 'breakfast', name: 'Завтраки', icon: '🥞' },
   { id: 'main', name: 'Основное', icon: '🍔' },
   { id: 'desserts', name: 'Десерты', icon: '🍰' },
+])
+
+const cartItems = ref([
+  {
+    id: 1,
+    name: 'Пепперони',
+    description: 'Острая салями, томатный соус, сыр моцарелла',
+    price: 599,
+    category: 'pizza',
+    icon: '🍕',
+    color: 'linear-gradient(135deg, #ff9a9e, #fad0c4)',
+    quantity: 1,
+  },
+  {
+    id: 4,
+    name: 'Филадельфия',
+    description: 'Лосось, сливочный сыр, огурец, рис',
+    price: 450,
+    category: 'sushi',
+    icon: '🍣',
+    color: 'linear-gradient(135deg, #d4fc79, #96e6a1)',
+    quantity: 2,
+  },
 ])
 
 const foodItems = ref([
@@ -223,8 +252,35 @@ const foodItems = ref([
 
 const activeCategory = ref('all')
 const pressedCategory = ref(null)
-const isCartOpen = ref(false)
 const headerRef = ref(null)
+
+const isCartOpen = ref(false)
+const isClosing = ref(false)
+const cartContainer = ref(null)
+
+const startCloseAnimation = () => {
+  isClosing.value = true
+
+  nextTick(() => {
+    cartContainer.value.addEventListener(
+      'animationend',
+      () => {
+        isCartOpen.value = false
+        isClosing.value = false
+      },
+      { once: true },
+    )
+  })
+}
+
+const toggleCart = () => {
+  if (isCartOpen.value) {
+    startCloseAnimation()
+  } else {
+    isCartOpen.value = true
+    isClosing.value = false
+  }
+}
 
 const cartTotal = computed(() => 14500)
 const filteredFood = computed(() =>
@@ -234,12 +290,6 @@ const filteredFood = computed(() =>
 )
 
 const setActiveCategory = (id) => (activeCategory.value = id)
-const toggleCart = () => (isCartOpen.value = !isCartOpen.value)
-const handlePageClick = (event) => {
-  if (headerRef.value?.closeDropdowns) {
-    headerRef.value.closeDropdowns()
-  }
-}
 
 onMounted(() => document.addEventListener('click', handlePageClick))
 onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
@@ -257,7 +307,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
     -apple-system,
     sans-serif;
   background-color: #fff;
-  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .page-header {
@@ -310,20 +359,57 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   transform: scale(1.05);
 }
 
-.cart-sidebar {
-  position: fixed;
-  top: 85px;
-  right: 0;
-  width: 375px;
-  height: calc(100vh - 85px);
-  background-color: white;
-  z-index: 999;
-  overflow-y: auto;
-  border-left: 1px solid #eee;
+.content-wrapper {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
 }
 
-.page-container.cart-open + .cart-sidebar {
-  transform: translateX(0);
+.page-container {
+  flex: 1;
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  max-width: 1200px;
+  padding: 20px;
+  margin: 0 auto;
+}
+
+.page-container.cart-open {
+  transform: translateX(-10%);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateX(100%);
+}
+
+.cart-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 25%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.cart-container.open {
+  pointer-events: auto;
 }
 
 .slogan {
@@ -333,35 +419,12 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   font-weight: 400;
 }
 
-.page-container {
-  max-width: 1200px;
-  padding: 20px;
-  margin: 0 auto;
-  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.page-container.cart-open {
-  transform: scale(0.98);
-  padding-right: 375px; /* Место для корзины */
-  opacity: 0.9;
-  transition:
-    transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
-    opacity 0.3s ease;
-}
-
 .food-categories {
   display: flex;
   gap: 12px;
   margin-bottom: 30px;
   flex-wrap: wrap;
   justify-content: center;
-}
-
-.content-wrapper {
-  position: relative;
-  max-width: 1200px;
-  margin: 0 auto;
-  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .category-btn {
@@ -406,6 +469,46 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
 
 .category-btn:hover .icon {
   transform: scale(1.1);
+}
+
+.cart-animation-container {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  width: 25%;
+  height: 100%;
+  z-index: 99;
+}
+
+.cart-animation-container.open {
+  animation: slide-in 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.cart-animation-container.closing {
+  animation: slide-out 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+@keyframes slide-in {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-out {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
 }
 
 .food-list {
@@ -548,7 +651,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   opacity: 0.9;
 }
 
-/* Food list animations */
 .food-list-move,
 .food-list-enter-active,
 .food-list-leave-active {
@@ -565,17 +667,26 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   position: absolute;
 }
 
+@media (max-width: 1200px) {
+  .page-container.cart-open {
+    transform: none;
+  }
+
+  .cart-container {
+    width: 100%;
+  }
+
+  .slide-enter-from,
+  .slide-leave-to {
+    transform: translateY(100%);
+  }
+}
+
 @media (max-width: 1500px) {
   .page-container.cart-open {
     transform: none;
+    width: auto;
     padding-right: 0;
-    filter: none;
-    opacity: 1;
-  }
-
-  .cart-sidebar {
-    z-index: 1001; /* Поверх контента */
-    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -583,22 +694,17 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   .page-container.cart-open {
     padding-right: 0;
   }
-
-  .cart-open .food-content {
-    transform: scale(1);
-    opacity: 0.7;
-  }
 }
 
 @media (max-width: 1480px) {
   .page-container.cart-open {
-    padding-right: 300px;
+    padding-right: 0;
   }
 }
 
 @media (max-width: 1400px) {
   .page-container.cart-open {
-    padding-right: 375px;
+    padding-right: 0;
   }
   .header-content h1 {
     font-size: 1.9rem;
@@ -618,7 +724,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
 
 @media (max-width: 1200px) {
   .page-container.cart-open {
-    padding-right: 400px;
+    padding-right: 0;
   }
   .header-content h1 {
     font-size: 1.7rem;
@@ -636,28 +742,17 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   }
 }
 
-@media (max-width: 1920) {
+@media (max-width: 1920px) {
   .page-container {
-    transition: padding-right 0.4s ease;
-  }
-
-  .page-container.cart-open {
-    padding-right: 375px;
-  }
-
-  .cart-open .food-content {
-    transform: scale(0.95);
-    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    transition:
+      transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+      width 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   }
 }
 
 @media (min-width: 1921px) {
-  .cart-open .food-content {
-    transform: none;
-  }
-
   .page-container.cart-open {
-    padding-right: 20px;
+    padding-right: 0;
   }
 }
 </style>

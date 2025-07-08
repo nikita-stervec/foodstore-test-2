@@ -58,7 +58,7 @@
         </div>
 
         <div class="right-controls">
-          <button class="cart-button" :class="{ active: showCartDropdown }" @click="toggleCart">
+          <button class="cart-button" :class="{ active: isCartOpen }" @click.stop="toggleCart">
             <CartIcon class="cart-icon" />
             <span class="balance" :class="{ animating: isAnimating }">
               {{ formattedBalance }}
@@ -68,98 +68,6 @@
       </div>
     </header>
   </div>
-
-  <transition name="slide">
-    <div v-if="showCartDropdown" class="cart-sidebar" @click.stop>
-      <div class="cart-dropdown-content">
-        <div class="cart-header">
-          <h3>Мой заказ:</h3>
-          <button class="close-cart" @click="showCartDropdown = false">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="2" />
-            </svg>
-          </button>
-        </div>
-        <div class="cart-content">
-          <div class="delivery-options">
-            <button
-              class="delivery-option"
-              :class="{ active: deliveryMethod === 'delivery' }"
-              @click="deliveryMethod = 'delivery'"
-            >
-              Доставка
-            </button>
-            <button
-              class="delivery-option"
-              :class="{ active: deliveryMethod === 'pickup' }"
-              @click="deliveryMethod = 'pickup'"
-            >
-              Самовывоз
-            </button>
-          </div>
-
-          <div v-if="deliveryMethod === 'delivery'" class="address-container">
-            <svg class="location-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z"
-                fill="currentColor"
-              />
-            </svg>
-            <span class="address">ул. Коркыт Ата (аул. Косшы) 18/1 </span>
-          </div>
-
-          <div class="cart-items-container">
-            <div v-for="(item, index) in cartItems" :key="index" class="cart-item">
-              <div class="item-image-container">
-                <div class="item-image" :style="{ background: item.color }">
-                  <div class="food-icon">{{ item.icon }}</div>
-                </div>
-              </div>
-              <div class="item-contorl">
-                <div class="item-name">{{ item.name }}</div>
-                <div class="item-compound">{{ item.description }}</div>
-                <div class="item-summary-block">
-                  <div class="quantity-control">
-                    <button class="quantity-btn" @click="decreaseItemCount(index)">-</button>
-                    <span class="quantity">{{ item.quantity }}</span>
-                    <button class="quantity-btn" @click="increaseItemCount(index)">+</button>
-                  </div>
-                  <div class="item-price">
-                    {{ (item.price * item.quantity).toLocaleString('ru-RU') }} ₸
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="promo-container">
-            <input type="text" v-model="promoCode" placeholder="Промокод" class="promo-input" />
-          </div>
-
-          <div class="order-summary">
-            <div class="summary-row">
-              <span
-                >Товары в заказе <span class="order-quantity">{{ itemCount }} шт.</span></span
-              >
-              <span>{{ (13500 * itemCount).toLocaleString('ru-RU') }} ₸</span>
-            </div>
-            <div v-if="deliveryMethod === 'delivery'" class="summary-row">
-              <span>Доставка</span>
-              <span>1 000 ₸</span>
-            </div>
-            <div class="summary-row total">
-              <span class="total-text">Итого</span>
-              <span class="total-price" :class="{ changing: isTotalChanging }"
-                >{{ totalPrice.toLocaleString('ru-RU') }} ₸</span
-              >
-            </div>
-          </div>
-
-          <button class="order-button">Заказать</button>
-        </div>
-      </div>
-    </div>
-  </transition>
 </template>
 
 <script setup>
@@ -170,7 +78,7 @@ import SearchIcon from './icons/SearchIcon.vue'
 
 const emit = defineEmits(['toggle-cart'])
 const props = defineProps({
-  totalPrice: { type: Number, default: 14500 },
+  totalPrice: { type: Number, default: 0 },
   isCartOpen: Boolean,
 })
 
@@ -178,8 +86,6 @@ const animatedBalance = ref(0)
 const animationStart = ref(0)
 const animationDuration = 300
 const animationFrameId = ref(null)
-const showCartDropdown = ref(false)
-const langButtonWidth = ref(50)
 const activeIcon = ref(null)
 const isAnimating = ref(false)
 const isScrolled = ref(false)
@@ -187,47 +93,14 @@ const showLangDropdown = ref(false)
 const showSearch = ref(false)
 const searchQuery = ref('')
 const currentLang = ref('RU')
-const deliveryMethod = ref('delivery')
-const itemCount = ref(1)
-const promoCode = ref('')
-const isTotalChanging = ref(false)
 const langButton = ref(null)
 const searchInput = ref(null)
+const langButtonWidth = ref(50)
 
 const languages = ['RU', 'KZ', 'EN']
-const cartItems = ref([
-  {
-    id: 1,
-    name: 'Пепперони',
-    description: 'Острая салями, томатный соус, сыр моцарелла',
-    price: 599,
-    category: 'pizza',
-    icon: '🍕',
-    color: 'linear-gradient(135deg, #ff9a9e, #fad0c4)',
-    quantity: 1,
-  },
-  {
-    id: 4,
-    name: 'Филадельфия',
-    description: 'Лосось, сливочный сыр, огурец, рис',
-    price: 450,
-    category: 'sushi',
-    icon: '🍣',
-    color: 'linear-gradient(135deg, #d4fc79, #96e6a1)',
-    quantity: 2,
-  },
-])
 
 const formattedBalance = computed(
   () => Math.floor(animatedBalance.value).toLocaleString('ru-RU') + ' ₸',
-)
-const cartTotalPrice = computed(() => {
-  const itemsPrice = cartItems.value.reduce((total, item) => total + item.price * item.quantity, 0)
-  const deliveryFee = deliveryMethod.value === 'delivery' ? 1000 : 0
-  return itemsPrice + deliveryFee
-})
-const totalItemsCount = computed(() =>
-  cartItems.value.reduce((total, item) => total + item.quantity, 0),
 )
 
 const startCounterAnimation = () => {
@@ -255,47 +128,44 @@ const startCounterAnimation = () => {
   setTimeout(() => (isAnimating.value = false), 300)
 }
 
-watch(cartTotalPrice, () => {
-  isTotalChanging.value = true
-  setTimeout(() => (isTotalChanging.value = false), 600)
-})
-watch(
-  () => props.isCartOpen,
-  (newVal) => (showCartDropdown.value = newVal),
-)
-watch(showCartDropdown, (newVal) => emit('toggle-cart', newVal))
 watch(() => props.totalPrice, startCounterAnimation)
 
 const closeDropdowns = () => {
   showLangDropdown.value = false
   showSearch.value = false
 }
+
 const closeOtherDropdowns = (current) => {
   if (current !== 'lang') showLangDropdown.value = false
   if (current !== 'search') showSearch.value = false
-  if (current !== 'cart') showCartDropdown.value = false
 }
+
 const closeAllDropdowns = () => {
   showLangDropdown.value = false
-  showCartDropdown.value = false
   showSearch.value = false
 }
-const setActiveIcon = (iconName) =>
-  (activeIcon.value = activeIcon.value === iconName ? null : iconName)
+
+const setActiveIcon = (iconName) => {
+  activeIcon.value = activeIcon.value === iconName ? null : iconName
+}
+
 const toggleCart = (e) => {
   e.stopPropagation()
   closeOtherDropdowns('cart')
-  showCartDropdown.value = !showCartDropdown.value
+  emit('toggle-cart')
 }
+
 const toggleLangDropdown = (e) => {
   e.stopPropagation()
   closeOtherDropdowns('lang')
   showLangDropdown.value = !showLangDropdown.value
 }
+
 const selectLang = (lang) => {
   currentLang.value = lang
   showLangDropdown.value = false
 }
+
 const toggleSearch = (e) => {
   e.stopPropagation()
   closeOtherDropdowns('search')
@@ -304,14 +174,9 @@ const toggleSearch = (e) => {
     nextTick(() => searchInput.value.focus())
   }
 }
-const handleScroll = () => (isScrolled.value = window.scrollY > 200)
-const increaseItemCount = (index) => cartItems.value[index].quantity++
-const decreaseItemCount = (index) => {
-  if (cartItems.value[index].quantity > 1) {
-    cartItems.value[index].quantity--
-  } else {
-    cartItems.value.splice(index, 1)
-  }
+
+const handleScroll = () => {
+  isScrolled.value = window.scrollY > 200
 }
 
 onMounted(() => {
@@ -319,13 +184,17 @@ onMounted(() => {
   startCounterAnimation()
 
   nextTick(() => {
-    if (langButton.value) langButtonWidth.value = langButton.value.offsetWidth
+    if (langButton.value) {
+      langButtonWidth.value = langButton.value.offsetWidth
+    }
   })
 })
+
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
   if (animationFrameId.value) cancelAnimationFrame(animationFrameId.value)
 })
+
 defineExpose({
   closeDropdowns,
 })
@@ -653,20 +522,6 @@ main {
   display: flex;
   justify-content: center;
   margin: 0;
-}
-
-.cart-sidebar {
-  position: fixed;
-  top: 85px;
-  right: 0;
-  width: 375px;
-  height: 100%;
-  background-color: white;
-  z-index: 999;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  border-left: 1px solid #eee;
 }
 
 .cart-header {
