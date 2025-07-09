@@ -8,7 +8,7 @@
     />
     <div class="content-wrapper">
       <transition name="slide">
-        <div class="page-container" :class="{ 'cart-open': isCartOpen }">
+        <div class="page-container" :class="{ 'cart-open': isContentShifted }">
           <div class="food-content">
             <header class="page-header">
               <div class="header-content">
@@ -255,14 +255,22 @@ const foodItems = ref([
 const activeCategory = ref('all')
 const pressedCategory = ref(null)
 const headerRef = ref(null)
-
+const isContentShifted = ref(false)
 const isCartOpen = ref(false)
 const isClosing = ref(false)
 const cartContainer = ref(null)
 
+const toggleCart = () => {
+  if (isCartOpen.value) {
+    startCloseAnimation()
+  } else {
+    isCartOpen.value = true
+    isContentShifted.value = true
+  }
+}
 const startCloseAnimation = () => {
   isClosing.value = true
-
+  isContentShifted.value = false
   nextTick(() => {
     cartContainer.value.addEventListener(
       'animationend',
@@ -274,16 +282,6 @@ const startCloseAnimation = () => {
     )
   })
 }
-
-const toggleCart = () => {
-  if (isCartOpen.value) {
-    startCloseAnimation()
-  } else {
-    isCartOpen.value = true
-    isClosing.value = false
-  }
-}
-
 const cartTotal = computed(() => 14500)
 const filteredFood = computed(() =>
   activeCategory.value === 'all'
