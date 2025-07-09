@@ -3,7 +3,7 @@
     <AppHeader
       ref="headerRef"
       :totalPrice="cartTotal"
-      :isCartOpen="isCartOpen"
+      :isContentShifted="isContentShifted"
       @toggle-cart="toggleCart"
     />
     <div class="content-wrapper">

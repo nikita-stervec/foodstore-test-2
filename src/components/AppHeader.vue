@@ -1,5 +1,9 @@
 <template>
-  <div class="app-container" :class="{ 'cart-open': isCartOpen }" @click="closeAllDropdowns">
+  <div
+    class="app-container"
+    :class="{ 'content-shifted': isContentShifted }"
+    @click="closeAllDropdowns"
+  >
     <header class="header" :class="{ scrolled: isScrolled }">
       <div class="header-container">
         <div class="left-controls">
@@ -58,7 +62,11 @@
         </div>
 
         <div class="right-controls">
-          <button class="cart-button" :class="{ active: isCartOpen }" @click.stop="toggleCart">
+          <button
+            class="cart-button"
+            :class="{ active: isContentShifted }"
+            @click.stop="toggleCart"
+          >
             <CartIcon class="cart-icon" />
             <span class="balance" :class="{ animating: isAnimating }">
               {{ formattedBalance }}
@@ -79,7 +87,7 @@ import SearchIcon from './icons/SearchIcon.vue'
 const emit = defineEmits(['toggle-cart'])
 const props = defineProps({
   totalPrice: { type: Number, default: 0 },
-  isCartOpen: Boolean,
+  isContentShifted: Boolean,
 })
 
 const animatedBalance = ref(0)
@@ -213,7 +221,6 @@ defineExpose({
 }
 
 * {
-  transition: 0.3s ease;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -523,32 +530,32 @@ defineExpose({
   transform: translateY(-10px);
 }
 
-.app-container.cart-open .left-controls {
+.app-container.isContentShifted .left-controls {
   justify-content: flex-start;
   animation: spread-left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   --spread-distance: 30px;
 }
 
-.app-container.cart-open .right-controls {
+.app-container.isContentShifted .right-controls {
   justify-content: flex-end;
   animation: spread-right 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   --spread-distance: 30px;
 }
 
-.app-container.cart-open .search-box {
+.app-container.isContentShifted .search-box {
   display: flex !important;
   opacity: 1;
   pointer-events: auto;
 }
 
-.app-container.cart-open .search-button {
+.app-container.isContentShifted .search-button {
   display: flex !important;
   opacity: 1;
   transform: scale(1);
 }
 
-.app-container:not(.cart-open) .left-controls,
-.app-container:not(.cart-open) .right-controls {
+.app-container:not(.isContentShifted) .left-controls,
+.app-container:not(.isContentShifted) .right-controls {
   animation: return-smooth 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
@@ -592,29 +599,34 @@ defineExpose({
 }
 
 @media (min-width: 1249px) and (max-width: 1599px) {
-  .app-container.cart-open .left-controls,
-  .app-container.cart-open .right-controls {
-    transition:
-      transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
-      opacity 0.4s ease;
+  .app-container .left-controls,
+  .app-container .right-controls {
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  .app-container:not(.cart-open) .left-controls,
-  .app-container:not(.cart-open) .right-controls {
-    transition:
-      transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-      opacity 0.5s ease;
+  .app-container.isContentShifted .left-controls {
+    transform: translateX(-30px);
+  }
+
+  .app-container.isContentShifted .right-controls {
+    transform: translateX(30px);
+  }
+
+  .app-container:not(.isContentShifted) .left-controls,
+  .app-container:not(.isContentShifted) .right-controls {
+    transform: translateX(0);
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
 
 @media (min-width: 1139px) and (max-width: 1249px) {
-  .app-container.cart-open .left-controls,
-  .app-container.cart-open .right-controls {
+  .app-container.isContentShifted .left-controls,
+  .app-container.isContentShifted .right-controls {
     animation: none;
   }
 
-  .app-container:not(.cart-open) .left-controls,
-  .app-container:not(.cart-open) .right-controls {
+  .app-container:not(.isContentShifted) .left-controls,
+  .app-container:not(.isContentShifted) .right-controls {
     animation: none;
   }
 }
