@@ -325,6 +325,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
 }
 
 .page-container {
+  background: #ffffffa2;
   flex: 1;
   transition:
     transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
@@ -332,6 +333,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   max-width: 1200px;
   padding: 20px;
   margin: 0 auto;
+  z-index: 200;
 }
 
 .page-header {
@@ -346,6 +348,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   box-shadow: 0 4px 20px rgba(255, 154, 158, 0.3);
   color: #fff;
   transition: transform 0.3s ease;
+  z-index: 999;
 }
 
 .header-content {
@@ -504,7 +507,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   right: 0;
   width: 375px;
   height: 100%;
-  z-index: 99;
+  z-index: 5;
 }
 
 .slide-enter-active,
@@ -548,6 +551,9 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   0% {
     transform: translateX(50%);
     opacity: 1;
+  }
+  50% {
+    opacity: 0;
   }
   100% {
     transform: translateX(-100%);
@@ -627,6 +633,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
 }
 
 .page-container.cart-open {
+  background: #ffffff18;
   transform: translateX(-15%);
 }
 
@@ -635,7 +642,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
 }
 
 .cart-animation-container.closing {
-  animation: slide-out 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  animation: slide-out 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; /* Медленнее */
 }
 
 @media (min-width: 1140px) and (max-width: 1200px) {
@@ -688,6 +695,9 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
     0% {
       transform: translateX(-40%);
       opacity: 1;
+    }
+    50% {
+      opacity: 0;
     }
     100% {
       transform: translateX(-100%);
@@ -779,6 +789,9 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
     0% {
       transform: translateX(25%);
       opacity: 1;
+    }
+    50% {
+      opacity: 0;
     }
     100% {
       transform: translateX(-100%);

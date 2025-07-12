@@ -148,7 +148,6 @@ watch(cartTotalPrice, () => {
   height: 92.5vh;
   width: 375px;
   background: white;
-  z-index: 99;
   overflow-y: auto;
 }
 

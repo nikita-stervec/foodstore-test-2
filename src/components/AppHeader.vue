@@ -290,7 +290,7 @@ defineExpose({
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
+  z-index: 1000;
   transition: transform 0.4s ease;
   padding: 0;
   height: 85px;
