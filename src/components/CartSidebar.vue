@@ -142,7 +142,6 @@ watch(cartTotalPrice, () => {
 
 .cart-sidebar {
   margin-top: 85px;
-  position: fixed;
   top: 0;
   right: 0;
   bottom: 0;

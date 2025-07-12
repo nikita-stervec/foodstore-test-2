@@ -7,71 +7,73 @@
       @toggle-cart="toggleCart"
     />
     <div class="content-wrapper">
-      <transition name="slide">
-        <div class="page-container" :class="{ 'cart-open': isContentShifted }">
-          <div class="food-content">
-            <header class="page-header">
-              <div class="header-content">
-                <h1>
-                  🍕 ПИЦЦА & СУШИ 🍣
-                  <div class="highlight">Доставка за 60 минут</div>
-                </h1>
-                <p class="slogan">Блюда от шеф-повара прямо к вашему столу</p>
-              </div>
-            </header>
-          </div>
+      <div class="content-flex">
+        <transition name="slide">
+          <div class="page-container" :class="{ 'cart-open': isContentShifted }">
+            <div class="food-content">
+              <header class="page-header">
+                <div class="header-content">
+                  <h1>
+                    🍕 ПИЦЦА & СУШИ 🍣
+                    <div class="highlight">Доставка за 60 минут</div>
+                  </h1>
+                  <p class="slogan">Блюда от шеф-повара прямо к вашему столу</p>
+                </div>
+              </header>
+            </div>
 
-          <section class="food-categories">
-            <button
-              v-for="category in categories"
-              :key="category.id"
-              class="category-btn"
-              :class="{
-                active: activeCategory === category.id,
-                pressed: pressedCategory === category.id,
-              }"
-              @mousedown="pressedCategory = category.id"
-              @mouseup="pressedCategory = null"
-              @mouseleave="pressedCategory = null"
-              @click="setActiveCategory(category.id)"
-            >
-              <span class="icon">{{ category.icon }}</span>
-              {{ category.name }}
-            </button>
-          </section>
+            <section class="food-categories">
+              <button
+                v-for="category in categories"
+                :key="category.id"
+                class="category-btn"
+                :class="{
+                  active: activeCategory === category.id,
+                  pressed: pressedCategory === category.id,
+                }"
+                @mousedown="pressedCategory = category.id"
+                @mouseup="pressedCategory = null"
+                @mouseleave="pressedCategory = null"
+                @click="setActiveCategory(category.id)"
+              >
+                <span class="icon">{{ category.icon }}</span>
+                {{ category.name }}
+              </button>
+            </section>
 
-          <transition-group name="food-list" tag="div" class="food-list">
-            <div v-for="item in filteredFood" :key="item.id" class="food-card">
-              <div class="food-image" :style="{ background: item.color }">
-                <div class="image-placeholder">{{ item.icon }}</div>
+            <transition-group name="food-list" tag="div" class="food-list">
+              <div v-for="item in filteredFood" :key="item.id" class="food-card">
+                <div class="food-image" :style="{ background: item.color }">
+                  <div class="image-placeholder">{{ item.icon }}</div>
+                </div>
+                <div class="food-info">
+                  <h3>{{ item.name }}</h3>
+                  <p class="description">{{ item.description }}</p>
+                  <div class="price-add">
+                    <span class="price">{{ item.price }} ₸</span>
+                  </div>
+                </div>
               </div>
-              <div class="food-info">
-                <h3>{{ item.name }}</h3>
-                <p class="description">{{ item.description }}</p>
-                <div class="price-add">
-                  <span class="price">{{ item.price }} ₸</span>
+            </transition-group>
+
+            <div class="promo-banner">
+              <div class="promo-content">
+                <div class="promo-icon">🎉</div>
+                <div class="promo-text">
+                  <h3>АКЦИЯ! Закажите 2 пиццы и получите роллы в подарок</h3>
+                  <p>Только до конца месяца</p>
                 </div>
               </div>
             </div>
-          </transition-group>
-
-          <div class="promo-banner">
-            <div class="promo-content">
-              <div class="promo-icon">🎉</div>
-              <div class="promo-text">
-                <h3>АКЦИЯ! Закажите 2 пиццы и получите роллы в подарок</h3>
-                <p>Только до конца месяца</p>
-              </div>
-            </div>
-          </div>
-        </div></transition
-      >
-      <div
-        class="cart-animation-container"
-        :class="{ open: isCartOpen, closing: isClosing }"
-        ref="cartContainer"
-      >
-        <CartSidebar :show="isCartOpen" :cartItems="cartItems" @close="startCloseAnimation" />
+          </div></transition
+        >
+        <div
+          class="cart-animation-container"
+          :class="{ open: isCartOpen, closing: isClosing }"
+          ref="cartContainer"
+        >
+          <CartSidebar :show="isCartOpen" :cartItems="cartItems" @close="startCloseAnimation" />
+        </div>
       </div>
     </div>
   </div>
@@ -314,6 +316,14 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   padding: 0 0;
 }
 
+.content-flex {
+  display: flex;
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
 .page-container {
   flex: 1;
   transition:
@@ -336,6 +346,24 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
 .slide-enter-from,
 .slide-leave-to {
   transform: translateX(100%);
+}
+
+.cart-animation-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 375px;
+  height: 100%;
+  transform: translateX(100%);
+  z-index: 99;
+}
+
+.cart-animation-container.open {
+  animation: slide-in 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+.cart-animation-container.closing {
+  animation: slide-out 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
 .food-content {
@@ -612,185 +640,205 @@ onBeforeUnmount(() => document.removeEventListener('click', handlePageClick))
   position: absolute;
 }
 
-.cart-animation-container {
-  position: absolute;
-  top: 0;
-  left: 100%;
-  width: 25%;
-  height: 100%;
-  z-index: 99;
-}
-
-.cart-animation-container.open {
-  animation: slide-in 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-}
-
-.cart-animation-container.closing {
-  animation: slide-out 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-}
-
 @keyframes slide-in {
   0% {
     transform: translateX(-100%);
     opacity: 0;
   }
-
   100% {
+    transform: translateX(50%);
     opacity: 1;
-    transform: translateX(0);
   }
 }
 
 @keyframes slide-out {
   0% {
-    transform: translateX(0);
+    transform: translateX(50%);
     opacity: 1;
   }
   100% {
-    opacity: 0;
     transform: translateX(-100%);
+    opacity: 0;
   }
 }
 
-@media (min-width: 3300px) {
-  .page-container.cart-open {
-    transform: translateX(-8%);
+@media (min-width: 1140px) and (max-width: 1200px) {
+  /* Анимации оставляем без изменений */
+  @keyframes slide-in-low {
+    0% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(-40%);
+      opacity: 1;
+    }
   }
-}
 
-@media (min-width: 2560px) and (max-width: 3299px) {
-  .page-container.cart-open {
-    transform: translateX(-8%);
+  @keyframes slide-out-low {
+    0% {
+      transform: translateX(-40%);
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
   }
-}
 
-@media (min-width: 1920px) and (max-width: 2559px) {
-  .page-container.cart-open {
-    transform: translateX(-8%);
-    padding: auto 0;
-  }
-}
-
-@media (min-width: 1600px) and (max-width: 1919px) {
-  .page-container.cart-open {
-    transform: translateX(-16%);
-  }
-  .cart-animation-container {
-    width: 15%;
-  }
-}
-
-@media (min-width: 1500px) and (max-width: 1599px) {
-  .page-container.cart-open {
-    padding-left: calc(8% + 20px);
-    padding-right: calc(8% + 20px);
-    transform: translateX(-17%);
-  }
-  .cart-animation-container {
-    width: 10%;
-  }
-}
-
-@media (min-width: 1400px) and (max-width: 1499px) {
-  .page-container.cart-open {
-    padding-left: calc(14% + 20px);
-    padding-right: calc(14% + 20px);
-    transform: translateX(-15%);
-  }
-  .cart-animation-container {
-    width: 4%;
-  }
-}
-
-@media (min-width: 1300px) and (max-width: 1399px) {
-  .page-container.cart-open {
-    padding-left: calc(13% + 20px);
-    padding-right: calc(13% + 20px);
-  }
-  .cart-animation-container {
-    width: 4%;
-  }
-}
-
-@media (min-width: 1200px) and (max-width: 1299px) {
-  .page-container.cart-open {
-    padding-left: calc(17% + 20px);
-    padding-right: calc(17% + 20px);
-  }
-  .cart-animation-container {
-    width: 0;
-  }
-}
-
-@media (min-width: 1140px) and (max-width: 1199px) {
-  .page-container.cart-open {
-    padding-left: calc(15% + 20px);
-    padding-right: calc(18% + 20px);
-  }
-  .cart-animation-container {
-    width: 0;
-  }
-}
-
-@media (max-width: 1200px) {
-  .slide-enter-from,
-  .slide-leave-to {
-    transform: translateY(100%);
-  }
-}
-
-@media (max-width: 768px) {
-  .page-container.cart-open {
-    padding-right: 0;
-  }
-}
-
-@media (max-width: 1400px) {
   .header-content h1 {
-    font-size: 1.9rem;
-    font-weight: 700;
+    align-items: center;
+    flex-direction: row;
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 500;
+    transition: transform 0.3s ease;
   }
 
   .highlight {
     font-size: 1.5rem;
-    font-weight: 700;
   }
 
-  .slogan {
-    font-size: 1rem;
-    font-weight: 300;
-  }
-}
-
-@media (max-width: 1200px) {
-  .header-content h1 {
-    font-size: 1.7rem;
-    font-weight: 700;
+  .content-flex {
+    justify-content: center;
   }
 
-  .highlight {
-    font-size: 1.3rem;
-    font-weight: 700;
+  /* ФИКС: Корректируем позицию корзины */
+  .cart-animation-container {
+    right: 0; /* Прижимаем к правому краю */
+    left: auto; /* Отключаем левое позиционирование */
+    width: 25%; /* Оптимальная ширина для этого разрешения */
   }
 
-  .slogan {
-    font-size: 0.8rem;
-    font-weight: 300;
+  .cart-animation-container.open {
+    animation: slide-in-low 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    transform: translateX(-5%); /* Фиксируем конечную позицию */
   }
-}
 
-@media (max-width: 1920px) {
+  .cart-animation-container.closing {
+    animation: slide-out-low 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  }
+
+  /* ФИКС: Уменьшаем смещение контента */
+  .page-container.cart-open {
+    transform: translateX(-25%); /* Снижено с -25% */
+    max-width: 730px; /* Оптимальная ширина */
+  }
   .page-container {
-    transition:
-      transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
-      width 0.4s cubic-bezier(0.23, 1, 0.32, 1),
-      padding 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    margin: auto 72px;
+  }
+}
+
+@media (min-width: 1201px) and (max-width: 1400px) {
+  @keyframes slide-in-lite {
+    0% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(-1%);
+      opacity: 1;
+    }
+  }
+  /* меню в лево */
+  @keyframes slide-out-lite {
+    0% {
+      transform: translateX(-1%);
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+  }
+
+  .cart-animation-container.open {
+    animation: slide-in-lite 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  }
+
+  .cart-animation-container.closing {
+    animation: slide-out-lite 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  }
+
+  .page-container.cart-open {
+    transform: translateX(-21.75%);
+    max-width: 798px;
+  }
+
+  .content-flex {
+    justify-content: center;
+  }
+
+  .page-container {
+    margin: auto 64px;
+  }
+}
+
+@media (min-width: 1401px) and (max-width: 1600px) {
+  @keyframes slide-in-lite {
+    0% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(25%);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-out-lite {
+    0% {
+      transform: translateX(25%);
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+  }
+
+  .page-container.cart-open {
+    transform: translateX(-15%);
+    max-width: 943px;
+    padding-right: 28px;
+  }
+
+  .content-flex {
+    justify-content: center;
+  }
+
+  .cart-animation-container.open {
+    animation: slide-in-lite 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  }
+
+  .cart-animation-container.closing {
+    animation: slide-out-lite 0.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  }
+
+  .page-container {
+    margin: auto 48px;
+  }
+}
+
+@media (min-width: 1601px) and (max-width: 1920px) {
+  .page-container.cart-open {
+    transform: translateX(-15%);
+    padding-right: 24px;
+  }
+
+  .content-flex {
+    justify-content: center;
   }
 }
 
 @media (min-width: 1921px) {
   .page-container.cart-open {
-    padding-right: 0;
+    transform: translateX(-15%);
+    padding-right: 24px;
+  }
+
+  .content-flex {
+    justify-content: center;
   }
 }
 </style>
